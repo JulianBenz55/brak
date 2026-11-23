@@ -745,7 +745,9 @@ fun ConfigurePagePlaylistVariant(
             useFormatSelection = false,
             onCancel = onDismissRequest,
             onDownload = {
-                onDownload(initialDownloadType)
+                // Use the type currently selected by the user, not the initial default.
+                // Otherwise selecting Audio still starts a Video download.
+                onDownload(selectedType)
                 onDismissRequest()
             },
             onFetchInfo = { throw IllegalStateException() },
