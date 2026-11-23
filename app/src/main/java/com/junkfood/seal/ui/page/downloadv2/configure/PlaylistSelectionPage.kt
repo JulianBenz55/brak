@@ -236,7 +236,7 @@ fun PlaylistSelectionPageImpl(
                 )
         ) {
             // Whole playlist is preselected, so a single tap on "Start download" gets everything
-            (1..(result.entries?.size ?: 0)).toMutableStateList()
+            (1..(result.entries?.size ?: 0)).toList().toMutableStateList()
         }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
