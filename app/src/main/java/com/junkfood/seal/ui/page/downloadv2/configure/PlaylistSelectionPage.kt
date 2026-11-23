@@ -1,3 +1,4 @@
+
 package com.junkfood.seal.ui.page.downloadv2.configure
 
 import androidx.activity.compose.BackHandler
@@ -126,7 +127,6 @@ fun PlaylistSelectionPage(
     }
 
     if (showConfigurationSheet) {
-
         SealModalBottomSheet(
             sheetState = configureSheetState,
             contentPadding = PaddingValues(),
@@ -140,9 +140,7 @@ fun PlaylistSelectionPage(
                 onPresetEdit = { type ->
                     when (type) {
                         Audio -> showAudioPresetDialog = true
-
                         Video -> showVideoPresetDialog = true
-
                         else -> {}
                     }
                 },
@@ -232,12 +230,15 @@ fun PlaylistSelectionPageImpl(
                             emptyList()
                         }
                     },
-                    restore = { it.toMutableStateList() },
+                    restore = { savedItems: List<Int> ->
+                        savedItems.toMutableStateList()
+                    },
                 )
         ) {
             // Whole playlist is preselected, so a single tap on "Start download" gets everything
             (1..(result.entries?.size ?: 0)).toMutableStateList()
         }
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     var showDialog by remember { mutableStateOf(false) }
     val playlistCount = result.entries?.size ?: 0
@@ -326,7 +327,6 @@ fun PlaylistSelectionPageImpl(
                         modifier = Modifier.padding(end = 4.dp),
                         onClick = {
                             view.slightHapticFeedback()
-
                             showDialog = true
                         },
                     ) {
@@ -377,6 +377,7 @@ fun PlaylistSelectionPageImpl(
             }
         }
     }
+
     if (showDialog) {
         PlaylistSelectionDialog(
             playlistInfo = result,
