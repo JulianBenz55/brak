@@ -11,55 +11,55 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'gradle'
+          cache: gradle
 
-      - name: Setup Android SDK
+      - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
-      - uses: gradle/actions/setup-gradle@v3
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Build release APK
-        run: gradle assembleRelease
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
 
-      - name: Sign app APK
-        id: sign_app
+      - name: Build generic release APKs
+        run: ./gradlew --no-daemon --stacktrace assembleGenericRelease
+
+      - name: Sign release APKs
         uses: ilharp/sign-android-release@nightly
         with:
-          releaseDir: app/build/outputs/apk/release
+          releaseDir: app/build/outputs/apk/generic/release
           signingKey: ${{ secrets.SIGNING_KEY }}
           keyAlias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
-      # Keep the Actions artifact as a secondary download/backup.
-      - name: Upload Artifact
+      - name: Upload signed APK as Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: signed-apks
-          path: app/build/outputs/apk/release/*-arm64-v8a-release-signed.apk
+          path: app/build/outputs/apk/generic/release/*-signed.apk
           if-no-files-found: error
           retention-days: 20
 
-      # Publish the same signed APK as a public GitHub Release.
-      # Anyone can download release assets from a public repository
-      # without signing in to GitHub.
-      - name: Publish APK to GitHub Releases
+      - name: Publish signed ARM64 APK as GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: apk-build-${{ github.run_number }}
+          tag_name: apk-build-${{ github.run_id }}
           name: Android APK Build ${{ github.run_number }}
           body: |
-            Automatically generated Android APK.
+            Automatically generated signed Android APK.
 
-            Download the signed ARM64 APK from the Assets section below.
-          files: app/build/outputs/apk/release/*-arm64-v8a-release-signed.apk
+            Download the ARM64 APK from the Assets section.
+          files: app/build/outputs/apk/generic/release/*arm64-v8a*-signed.apk
           fail_on_unmatched_files: true
           generate_release_notes: false
           make_latest: true
