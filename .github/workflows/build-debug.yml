@@ -6,8 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Required so the workflow can publish a public GitHub Release.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -35,15 +36,30 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x ./gradlew
 
-      # Build only the configured ABI (ABI_FILTERS=arm64-v8a).
-      # This disables the four ABI splits and the additional universal APK.
+      # Build the same ARM64 debug APK that is already working in Actions.
       - name: Build single arm64 debug APK
         run: ./gradlew --no-daemon --stacktrace -PnoSplits assembleGenericDebug
 
-      - name: Upload debug APK
+      - name: Upload debug APK as Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: Seal-debug-arm64
           path: app/build/outputs/apk/generic/debug/*.apk
           if-no-files-found: error
           retention-days: 14
+
+      # Do not publish releases from pull requests.
+      - name: Publish APK as public GitHub Release
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-${{ github.run_number }}-${{ github.run_attempt }}
+          name: Seal Android APK #${{ github.run_number }}
+          body: |
+            Automatically built ARM64 Android APK.
+
+            Download the APK from the Assets section below.
+          files: app/build/outputs/apk/generic/debug/*.apk
+          fail_on_unmatched_files: true
+          generate_release_notes: false
+          make_latest: true
